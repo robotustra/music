@@ -16,9 +16,9 @@
 
 #define START_NOTE	39
 #define END_NOTE	50
-#define NEG_INT		-1
-#define POS_INT		1
-#define FRAC_MAX	5		
+#define NEG_INT		-5
+#define POS_INT		5
+#define FRAC_MAX	4		
 #define MAX_LEN		512
 #define TOT_NOTES	88
 
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 
 	//# 1
 	for (i=START_NOTE; i<=END_NOTE; i++){ 
-		for (k=0; k<6; k++) {
+		for (k=0; k<FRAC_MAX; k++) {
 			for (j=0; j<2; j++ ){
 				memset(buf,0,MAX_LEN);
 				if (j==0) sprintf(buf, "*" ); // если пауза
@@ -97,6 +97,7 @@ int main(int argc, char *argv[]) {
 							cur_note = test_note;
 							tact = test_dur_tact;
 							sprintf(buf,"%s%s[1/%d]", buf, note[cur_note], 1<<cur_dur[nc] );
+							if (tact >= 1.0) { cnt ++;  goto tact_complete;}
 						}
 					}
 					// итерируем все для ноты до следующего раза.
@@ -107,16 +108,14 @@ int main(int argc, char *argv[]) {
 					} else 
 					{
 						cur_int[nc] = NEG_INT; // сбрасываем счетчик
-						int_flag = 1;
-						if (cur_dur[nc] < 6) cur_dur[nc] ++;
+						if (cur_dur[nc] < FRAC_MAX) cur_dur[nc] ++;
 						else 
 						{
 							cur_dur[nc] = 0;
-							dur_flag = 1;
 							if(cur_mute[nc]<1) cur_mute[nc] ++;
 							else { 
 								cur_mute[nc] = 0;
-								mute_flag = 1;
+								nc++;
 							}
 						}
 					}
