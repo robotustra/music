@@ -15,9 +15,9 @@
 #include "common.h"
 
 #define START_NOTE	39
-#define END_NOTE	50
-#define NEG_INT		-5
-#define POS_INT		5
+#define END_NOTE	39
+#define NEG_INT		0
+#define POS_INT		1
 #define FRAC_MAX	5		
 #define MAX_LEN		512
 #define TOT_NOTES	88
@@ -39,7 +39,6 @@ char* dur[6] = {
 	"1", "1/2", "1/4", "1/8", "1/16", "1/32" 
 };
 
-
 int main(int argc, char *argv[]) {
 	int i, j, k;
 	int i1, j1, k1;
@@ -50,6 +49,7 @@ int main(int argc, char *argv[]) {
 	double test_dur_tact = 0.0;
 	
 	char buf[MAX_LEN];
+	char b2[MAX_LEN]; // заключение буфера
 
 	int cur_int[32]; // текущие интервалы для последующих нот в такте.
 	int cur_dur[32]; // текущий показатель делителя длительности ноты
@@ -74,38 +74,42 @@ int main(int argc, char *argv[]) {
 			tact = 1.0/(1<<k);
 			sprintf(buf,"%s%s[1/%d]", buf, note[i], 1<<k );
 			// Add other notes if the duration is < 1
-			for (i1 = NEG_INT; i1< POS_INT; i1++ ) {
-				for (k1=0; k1<FRAC_MAX; k1++){
-					//printf("i1 = %d, k1 = %d\n", i1, k1);
-					// генерируем ноту исходя из текущего значения интервала для каждой ноты. Интервал для первой ноты уже задан
-					// иначе добавляем ноту.
-					test_note = cur_note + i1;
-					//printf("test_note = %d, ", test_note);
-					if (test_note>=0 && test_note<TOT_NOTES){
-						// Попали в диапазон 88 нот. Теперь нужно посчитать длительность интервала, который остался 
-						//до конца такта.
-						test_dur_tact = tact + 1.0/(1<<k1);
-						//printf("test_dur = %lf\n", test_dur_tact);
-						if (test_dur_tact < 1.0001) {
-							// попали в длительность такта.
-							// можно добавлять ноту в буфер
+			//for (nc = 0; nc< 32; nc ++) {
 
-							sprintf(buf, "%s,", buf); // разделитель
+next_note:
+				for (i1=NEG_INT; i1<POS_INT; i1++){
+					for (k1=0; k1<FRAC_MAX; k1++){
+						//printf("i1 = %d, k1 = %d\n", i1, k1);
+						// генерируем ноту исходя из текущего значения интервала для каждой ноты. Интервал для первой ноты уже задан
+						// иначе добавляем ноту.
+						test_note = cur_note + i1;
+						//printf("test_note = %d, ", test_note);
+						if (test_note >= 0 && test_note < TOT_NOTES){
+							// Попали в диапазон 88 нот. Теперь нужно посчитать длительность интервала, который остался 
+							//до конца такта.
+							test_dur_tact = tact + 1.0/(1<<k1);
+							//printf("test_dur = %lf\n", test_dur_tact);
+							if (test_dur_tact < 1.0001) {
+								// попали в длительность такта.
+								// можно добавлять ноту в буфер
 
-							cur_note = test_note;
-							tact = test_dur_tact;
-							sprintf(buf,"%s%s[1/%d]", buf, note[cur_note], 1<<k1 );
-							//if (tact >= 1.0) { cnt ++;  goto tact_complete;}
-						}
-					}						
-					if (tact > 0.999999 && tact < 1.000001) { 
-						printf("%s\n", buf);
-						cnt ++;  
-						goto tact_complete;
-					}		
-					
+								sprintf(buf, "%s,", buf); // разделитель
+
+								cur_note = test_note;
+								tact = test_dur_tact;
+								sprintf(buf,"%s%s[1/%d]", buf, note[cur_note], 1<<k1 );
+								//if (tact >= 1.0) { cnt ++;  goto tact_complete;}
+							}
+						}						
+						if (tact > 0.999999 && tact < 1.000001) { 
+							printf("%s\n", buf);
+							cnt ++;  
+							goto tact_complete;
+						}		
+						
+					}
 				}
-			}
+			//}
 tact_complete:
 			;;
 			
